@@ -412,12 +412,22 @@
 	else
 		stop_pulling()
 		. = ..()
+		if(. && canmove)
+			movement_wiggle()
 	if ((s_active && !( s_active in contents ) ))
 		s_active.close(src)
 
 	if(update_slimes)
 		for(var/mob/living/carbon/slime/M in view(1,src))
 			M.UpdateFeed(src)
+
+/mob/living/proc/movement_wiggle()
+	var/otransform = matrix(transform)
+	var/matrix/south_park_step = matrix(transform)
+	south_park_step.Turn(wiggle_step)
+	animate(src, transform = south_park_step, time = 1)
+	animate(transform = otransform, time = 1)
+	wiggle_step *= -1
 
 /mob/living/proc/getTrail() //silicon and simple_animals don't get blood trails
     return null

@@ -37,3 +37,5 @@
 	var/fire_stacks = 0 //Tracks how many stacks of fire we have on, max is usually 20
 
 	var/ventcrawler = 0 //0 No vent crawling, 1 vent crawling in the nude, 2 vent crawling always
+
+	var/wiggle_step = 5 //used for movement_wiggle(). Alternates -5 and 5 so each step wiggles a different direction
