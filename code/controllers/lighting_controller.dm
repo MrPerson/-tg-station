@@ -1,13 +1,11 @@
 var/datum/controller/lighting/lighting_controller = new ()
 
-datum/controller/lighting
+/datum/controller/lighting
 	var/processing = 0
 	var/processing_interval = 5	//setting this too low will probably kill the server. Don't be silly with it!
 	var/process_cost = 0
 	var/iteration = 0
 	var/max_cpu_use = 98		//this is just to prevent it queueing up when the server is dying. Not a solution, just damage control while I rethink a lot of this and try out ideas.
-
-	var/lighting_states = 6
 
 	var/list/lights = list()
 	var/lights_workload_max = 0
@@ -17,8 +15,7 @@ datum/controller/lighting
 	var/list/changed_turfs = list()
 	var/changed_turfs_workload_max = 0
 
-datum/controller/lighting/New()
-	lighting_states = max( 0, length(icon_states(LIGHTING_ICON))-1 )
+/datum/controller/lighting/New()
 	if(lighting_controller != src)
 		if(istype(lighting_controller,/datum/controller/lighting))
 			Recover()	//if we are replacing an existing lighting_controller (due to a crash) we attempt to preserve as much as we can
@@ -54,7 +51,7 @@ datum/controller/lighting/proc/process()
 				for(var/i=1, i<=changed_turfs.len, i++)
 					var/turf/T = changed_turfs[i]
 					if(T && T.lighting_changed)
-						T.shift_to_subarea()
+						T.redraw_lighting()
 				changed_turfs.Cut()		// reset the changed list
 
 				process_cost = (world.timeofday - started)
@@ -69,25 +66,23 @@ datum/controller/lighting/proc/Initialize(var/z_level)
 	processing = 0
 	spawn(-1)
 		set background = BACKGROUND_ENABLED
-		for(var/i=1, i<=lights.len, i++)
-			var/datum/light_source/L = lights[i]
-			if(L.check())
-				lights.Cut(i,i+1)
-				i--
+		if(!z_level)
+			for(var/i=1, i<=lights.len, i++) //Not sure if this part is really necessary
+				var/datum/light_source/L = lights[i]
+				if(L.check())
+					lights.Cut(i,i+1)
+					i--
 
 		var/z_start = 1
 		var/z_finish = world.maxz
-		if(z_level)
-			z_level = round(z_level,1)
-			if(z_level > 0 && z_level <= world.maxz)
-				z_start = z_level
-				z_finish = z_level
+		z_level = round(z_level,1)
+		if(z_level in z_start to z_finish)
+			z_start = z_level
+			z_finish = z_level
 
-		for(var/k=z_start,k<=z_finish,k++)
-			for(var/i=1,i<=world.maxx,i++)
-				for(var/j=1,j<=world.maxy,j++)
-					var/turf/T = locate(i,j,k)
-					if(T)	T.shift_to_subarea()
+		for(var/turf/T in block(locate(1, 1, z_start), locate(world.maxx, world.maxy, z_finish)))
+			T.init_lighting()
+			T.redraw_lighting()
 
 		changed_turfs.Cut()		// reset the changed list
 
@@ -112,7 +107,7 @@ datum/controller/lighting/proc/Recover()
 		var/turf/T = lighting_controller.changed_turfs[i]
 		if(istype(T) && T.lighting_changed)
 			spawn(-1)
-				T.shift_to_subarea()
+				T.redraw_lighting()
 
 	var/msg = "## DEBUG: [time2text(world.timeofday)] lighting_controller restarted. Reports:\n"
 	for(var/varname in lighting_controller.vars)
@@ -126,5 +121,3 @@ datum/controller/lighting/proc/Recover()
 					varval2 = "/list([length(varval2)])"
 				msg += "\t [varname] = [varval1] -> [varval2]\n"
 	world.log << msg
-
-#undef LIGHTING_ICON

@@ -360,8 +360,7 @@ proc/process_ghost_teleport_locs()
 
 /area/asteroid/artifactroom/New()
 	..()
-	lighting_use_dynamic = 1
-	InitializeLighting()
+	SetDynamicLighting()
 
 /area/planet/clown
 	name = "\improper Clown Planet"
