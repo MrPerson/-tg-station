@@ -187,7 +187,9 @@
 					else
 						M.stop_pulling()
 
-		move_delay = world.time//set move delay
+		//We are now going to move
+		moving = 1
+		move_delay = 0
 
 		switch(mob.m_intent)
 			if("run")
@@ -203,8 +205,14 @@
 			var/tickcomp = (1 / (world.tick_lag)) * 1.3
 			move_delay = move_delay + tickcomp
 
-		//We are now going to move
-		moving = 1
+		if(move_delay <= 0) //Prevents division by 0 oh shi
+			mob.glide_size = 0
+		else
+			mob.glide_size = world.icon_size / move_delay * world.tick_lag //Gives us the perfect glide size for the move we're about to make
+		glide_size = mob.glide_size
+
+		move_delay += world.time//set move delay
+
 		//Something with pulling things
 		if(locate(/obj/item/weapon/grab, mob))
 			move_delay = max(move_delay, world.time + 7)
