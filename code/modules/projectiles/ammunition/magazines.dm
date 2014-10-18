@@ -61,7 +61,7 @@
 
 ///////////EXTERNAL MAGAZINES////////////////
 /obj/item/ammo_box/magazine/m9mm
-	name = "magazine (9mm)"
+	name = "handgun magazine (9mm)"
 	icon_state = "9x19p"
 	origin_tech = "combat=2"
 	ammo_type = /obj/item/ammo_casing/c9mm
@@ -81,7 +81,7 @@
 	icon_state = "[initial(icon_state)]-[round(ammo_count(),3)]"
 
 /obj/item/ammo_box/magazine/m10mm
-	name = "magazine (10mm)"
+	name = "handgun magazine (10mm)"
 	icon_state = "9x19p"
 	origin_tech = "combat=2"
 	ammo_type = /obj/item/ammo_casing/c10mm
@@ -89,20 +89,20 @@
 	max_ammo = 8
 	multiple_sprites = 2
 
-/obj/item/ammo_box/magazine/m12mm
-	name = "magazine (12mm)"
-	icon_state = "12mm"
+/obj/item/ammo_box/magazine/c20m
+	name = "C-20r magazine (.45)"
+	icon_state = "c20r45"
 	origin_tech = "combat=2"
-	ammo_type = /obj/item/ammo_casing/a12mm
-	caliber = "12mm"
+	ammo_type = /obj/item/ammo_casing/c45
+	caliber = ".45"
 	max_ammo = 20
 
-/obj/item/ammo_box/magazine/m12mm/update_icon()
+/obj/item/ammo_box/magazine/c20m/update_icon()
 	..()
 	icon_state = "[initial(icon_state)]-[round(ammo_count(),2)]"
 
 /obj/item/ammo_box/magazine/sm45
-	name = "magazine (.45)"
+	name = "handgun magazine (.45)"
 	icon_state = "9x19p"
 	ammo_type = /obj/item/ammo_casing/c45
 	caliber = ".45"
@@ -131,7 +131,7 @@ obj/item/ammo_box/magazine/tommygunm45
 	max_ammo = 50
 
 /obj/item/ammo_box/magazine/m50
-	name = "magazine (.50ae)"
+	name = "handgun magazine (.50ae)"
 	icon_state = "50ae"
 	origin_tech = "combat=2"
 	ammo_type = /obj/item/ammo_casing/a50
@@ -148,7 +148,7 @@ obj/item/ammo_box/magazine/tommygunm45
 	max_ammo = 8
 
 /obj/item/ammo_box/magazine/m762
-	name = "magazine (7.62mm)"
+	name = "box magazine (7.62mm)"
 	icon_state = "a762"
 	origin_tech = "combat=2"
 	ammo_type = /obj/item/ammo_casing/a762
@@ -159,3 +159,27 @@ obj/item/ammo_box/magazine/tommygunm45
 /obj/item/ammo_box/magazine/m762/update_icon()
 	..()
 	icon_state = "[initial(icon_state)]-[round(ammo_count(),10)]"
+
+/obj/item/ammo_box/magazine/m12g
+	name = "shotgun magazine (12g taser slugs)"
+	icon_state = "m12gs"
+	origin_tech = "combat=3;syndicate=1"
+	ammo_type = /obj/item/ammo_casing/shotgun/stunslug
+	caliber = "shotgun"
+	max_ammo = 8
+
+/obj/item/ammo_box/magazine/m12g/update_icon()
+	..()
+	icon_state = "[initial(icon_state)]-[Ceiling(ammo_count(0)/8)*8]"
+
+
+/obj/item/ammo_box/magazine/m12g/buckshot
+	name = "shotgun magazine (12g buckshot)"
+	icon_state = "m12gb"
+	ammo_type = /obj/item/ammo_casing/shotgun/buckshot
+
+
+/obj/item/ammo_box/magazine/m12g/dragon
+	name = "shotgun magazine (12g dragon's breath)"
+	icon_state = "m12gf"
+	ammo_type = /obj/item/ammo_casing/shotgun/incendiary/dragonsbreath

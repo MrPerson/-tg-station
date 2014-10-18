@@ -36,6 +36,7 @@
 
 	weldingvisortoggle()
 
+
 // ********************************************************************
 
 // **** Security gas mask ****
@@ -54,23 +55,27 @@
 /obj/item/clothing/mask/gas/sechailer/hos
 	icon_state = "hosmask"
 
+/obj/item/clothing/mask/gas/sechailer/cyborg
+	icon_state = "hosmask"
+	aggressiveness = 1 //Borgs are nicecurity!
+
 /obj/item/clothing/mask/gas/sechailer/attackby(obj/item/weapon/W as obj, mob/user as mob)
 	if(istype(W, /obj/item/weapon/screwdriver))
 		switch(aggressiveness)
 			if(1)
-				user << "\blue You set the restrictor to the middle position."
+				user << "<span class='notice'>You set the restrictor to the middle position.</span>"
 				aggressiveness = 2
 			if(2)
-				user << "\blue You set the restrictor to the last position."
+				user << "<span class='notice'>You set the restrictor to the last position.</span>"
 				aggressiveness = 3
 			if(3)
-				user << "\blue You set the restrictor to the first position."
+				user << "<span class='notice'>You set the restrictor to the first position.</span>"
 				aggressiveness = 1
 			if(4)
-				user << "\red You adjust the restrictor but nothing happens, probably because its broken."
+				user << "<span class='danger'>You adjust the restrictor but nothing happens, probably because its broken.</span>"
 	else if(istype(W, /obj/item/weapon/wirecutters))
 		if(aggressiveness != 4)
-			user << "\red You broke it!"
+			user << "<span class='danger'>You broke it!</span>"
 			aggressiveness = 4
 	else
 		..()
@@ -103,7 +108,7 @@
 
 		switch(phrase)	//sets the properties of the chosen phrase
 			if(1)				// good cop
-				phrase_text = "HALT! HALT! HALT! HALT!"
+				phrase_text = "HALT! HALT! HALT!"
 				phrase_sound = "halt"
 			if(2)
 				phrase_text = "Stop in the name of the Law."
@@ -178,11 +183,13 @@
 	name = "\improper SWAT mask"
 	desc = "A close-fitting tactical mask that can be connected to an air supply."
 	icon_state = "swat"
+	strip_delay = 60
 
 /obj/item/clothing/mask/gas/syndicate
 	name = "syndicate mask"
 	desc = "A close-fitting tactical mask that can be connected to an air supply."
 	icon_state = "swat"
+	strip_delay = 60
 
 /obj/item/clothing/mask/gas/voice
 	name = "gas mask"
@@ -191,6 +198,11 @@
 	var/voice = "Unknown"
 	var/vchange = 0//This didn't do anything before. It now checks if the mask has special functions/N
 	origin_tech = "syndicate=4"
+	action_button_name = "Toggle mask"
+
+/obj/item/clothing/mask/gas/voice/attack_self(mob/user)
+	vchange = !vchange
+	user << "<span class='notice'>The voice changer is now [vchange ? "on" : "off"]!</span>"
 
 /obj/item/clothing/mask/gas/voice/space_ninja
 	name = "ninja mask"
@@ -198,6 +210,7 @@
 	icon_state = "s-ninja"
 	item_state = "s-ninja_mask"
 	vchange = 1
+	strip_delay = 120
 
 /obj/item/clothing/mask/gas/voice/space_ninja/speechModification(message)
 	if(voice == "Unknown")

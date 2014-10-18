@@ -49,7 +49,6 @@
 	density = 1
 	var/opened = 0
 	var/obj/machinery/power/compressor/compressor
-	directwired = 1
 	var/turf/simulated/outturf
 	var/lastgen
 	var/productivity = 1
@@ -58,7 +57,7 @@
 	name = "gas turbine control computer"
 	desc = "A computer to remotely control a gas turbine"
 	icon = 'icons/obj/computer.dmi'
-	icon_state = "airtunnel0e"
+	icon_state = "turbinecomp"
 	anchored = 1
 	density = 1
 	circuit = /obj/item/weapon/circuitboard/turbine_computer

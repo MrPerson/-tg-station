@@ -87,6 +87,7 @@
 
 /obj/item/clothing/head/soft/sec
 	name = "security cap"
-	desc = "It's baseball hat in tasteful red colour."
+	desc = "It's a robust baseball hat in tasteful red colour."
 	icon_state = "secsoft"
 	item_color = "sec"
+	armor = list(melee = 30, bullet = 5, laser = 5, energy = 15, bomb = 0, bio = 0, rad = 0)

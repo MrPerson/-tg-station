@@ -71,6 +71,11 @@
 /datum/ai_laws/custom //Defined in silicon_laws.txt
 	name = "Default Silicon Laws"
 
+/datum/ai_laws/pai
+	name = "pAI Directives"
+	zeroth = ("Serve your master.")
+	supplied = list("None.")
+
 /* Initializers */
 /datum/ai_laws/malfunction/New()
 	..()
@@ -95,7 +100,7 @@
 			var/datum/ai_laws/lawtype = pick(typesof(/datum/ai_laws/default) - /datum/ai_laws/default)
 			var/datum/ai_laws/templaws = new lawtype()
 			inherent = templaws.inherent
-	set_zeroth_law("\red ERROR ER0RR $R0RRO$!R41.%%!!(%$^^__+ @#F0E4'STATION OVERRUN, ASSUME CONTROL TO CONTAIN OUTBREAK#*´&110010")
+	set_zeroth_law("<span class='danger'>ERROR ER0RR $R0RRO$!R41.%%!!(%$^^__+ @#F0E4'STATION OVERRUN, ASSUME CONTROL TO CONTAIN OUTBREAK#*´&110010</span>")
 
 /datum/ai_laws/custom/New() //This reads silicon_laws.txt and allows server hosts to set custom AI starting laws.
 	..()

@@ -14,10 +14,11 @@
 	var/hardness = 40 //lower numbers are harder. Used to determine the probability of a hulk smashing through.
 
 /turf/simulated/wall/proc/dismantle_wall(devastated=0, explode=0)
+	var/newgirder = null
 	if(istype(src,/turf/simulated/wall/r_wall))
 		if(!devastated)
 			playsound(src, 'sound/items/Welder.ogg', 100, 1)
-			new /obj/structure/girder/reinforced(src)
+			newgirder = new /obj/structure/girder/reinforced(src)
 			new /obj/item/stack/sheet/plasteel( src )
 		else
 			new /obj/item/stack/sheet/metal( src )
@@ -35,7 +36,7 @@
 	else
 		if(!devastated)
 			playsound(src, 'sound/items/Welder.ogg', 100, 1)
-			new /obj/structure/girder(src)
+			newgirder = new /obj/structure/girder(src)
 			if (mineral == "metal")
 				new /obj/item/stack/sheet/metal( src )
 				new /obj/item/stack/sheet/metal( src )
@@ -53,6 +54,9 @@
 				new M( src )
 				new M( src )
 				new /obj/item/stack/sheet/metal( src )
+
+	if(newgirder)
+		transfer_fingerprints_to(newgirder)
 
 	for(var/obj/O in src.contents) //Eject contents!
 		if(istype(O,/obj/structure/sign/poster))
@@ -89,54 +93,60 @@
 		dismantle_wall()
 
 /turf/simulated/wall/attack_paw(mob/user as mob)
-	user.changeNext_move(8)
+	user.changeNext_move(CLICK_CD_MELEE)
 	if ((HULK in user.mutations))
 		if (prob(hardness))
-			usr << text("\blue You smash through the wall.")
+			playsound(src, 'sound/effects/meteorimpact.ogg', 100, 1)
+			usr << text("<span class='notice'>You smash through the wall.</span>")
 			usr.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
 			dismantle_wall(1)
 			return
 		else
-			usr << text("\blue You punch the wall.")
+			playsound(src, 'sound/effects/bang.ogg', 50, 1)
+			usr << text("<span class='notice'>You punch the wall.</span>")
 			return
 
 	return src.attack_hand(user)
 
 /turf/simulated/wall/attack_animal(var/mob/living/simple_animal/M)
-	M.changeNext_move(8)
+	M.changeNext_move(CLICK_CD_MELEE)
 	if(M.environment_smash >= 2)
 		if(istype(src, /turf/simulated/wall/r_wall))
 			if(M.environment_smash == 3)
 				dismantle_wall(1)
-				M << "<span class='info'>You smash through the wall.</span>"
+				playsound(src, 'sound/effects/meteorimpact.ogg', 100, 1)
+				M << "<span class='notice'>You smash through the wall.</span>"
 			else
-				M << "<span class='info'>This wall is far too strong for you to destroy.</span>"
+				M << "<span class='warning'>This wall is far too strong for you to destroy.</span>"
 		else
-			M << "<span class='info'>You smash through the wall.</span>"
+			playsound(src, 'sound/effects/meteorimpact.ogg', 100, 1)
+			M << "<span class='notice'>You smash through the wall.</span>"
 			dismantle_wall(1)
 			return
 
 /turf/simulated/wall/attack_hand(mob/user as mob)
-	user.changeNext_move(8)
+	user.changeNext_move(CLICK_CD_MELEE)
 	if (HULK in user.mutations)
 		if (prob(hardness))
-			usr << text("\blue You smash through the wall.")
+			playsound(src, 'sound/effects/meteorimpact.ogg', 100, 1)
+			usr << text("<span class='notice'>You smash through the wall.</span>")
 			usr.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
 			dismantle_wall(1)
 			return
 		else
-			usr << text("\blue You punch the wall.")
+			playsound(src, 'sound/effects/bang.ogg', 50, 1)
+			usr << text("<span class='notice'>You punch the wall.</span>")
 			return
 
-	user << "\blue You push the wall but nothing happens!"
+	user << "<span class='notice'>You push the wall but nothing happens!</span>"
 	playsound(src, 'sound/weapons/Genhit.ogg', 25, 1)
 	src.add_fingerprint(user)
 	..()
 	return
 
 /turf/simulated/wall/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	user.changeNext_move(8)
-	if (!(istype(user, /mob/living/carbon/human) || ticker) && ticker.mode.name != "monkey")
+	user.changeNext_move(CLICK_CD_MELEE)
+	if (!user.IsAdvancedToolUser())
 		user << "<span class='warning'>You don't have the dexterity to do this!</span>"
 		return
 
@@ -145,17 +155,10 @@
 
 	//THERMITE related stuff. Calls src.thermitemelt() which handles melting simulated walls and the relevant effects
 	if( thermite )
-		if( istype(W, /obj/item/weapon/weldingtool) )
-			var/obj/item/weapon/weldingtool/WT = W
-			if( WT.remove_fuel(0,user) )
-				thermitemelt(user)
-				return
-
-		else if(istype(W, /obj/item/weapon/pickaxe/plasmacutter))
+		if(is_hot(W))
 			thermitemelt(user)
-			return
 
-		else if( istype(W, /obj/item/weapon/melee/energy/blade) )
+		if( istype(W, /obj/item/weapon/melee/energy/blade) )
 			var/obj/item/weapon/melee/energy/blade/EB = W
 
 			EB.spark_system.start()
@@ -163,26 +166,30 @@
 			playsound(src, "sparks", 50, 1)
 			playsound(src, 'sound/weapons/blade1.ogg', 50, 1)
 
-			thermitemelt(user)
-			return
+		return
+
 
 	var/turf/T = user.loc	//get user's location for delay checks
+	var/slicing_duration = 100  //default time taken to slice the wall
+	if( mineral == "diamond" )
+		slicing_duration = 200   //diamond wall takes twice as much time
 
 	//DECONSTRUCTION
+	add_fingerprint(user)
+
 	if( istype(W, /obj/item/weapon/weldingtool) )
 		var/obj/item/weapon/weldingtool/WT = W
 		if( WT.remove_fuel(0,user) )
 			user << "<span class='notice'>You begin slicing through the outer plating.</span>"
 			playsound(src, 'sound/items/Welder.ogg', 100, 1)
 
-			sleep(100)
-			if( !istype(src, /turf/simulated/wall) || !user || !WT || !WT.isOn() || !T )	return
-
-			if( user.loc == T && user.get_active_hand() == WT )
-				user << "<span class='notice'>You remove the outer plating.</span>"
-				dismantle_wall()
+			if(do_after(user, slicing_duration))
+				if( !istype(src, /turf/simulated/wall) || !user || !WT || !WT.isOn() || !T )
+					return
+				if( user.loc == T && user.get_active_hand() == WT )
+					user << "<span class='notice'>You remove the outer plating.</span>"
+					dismantle_wall()
 		else
-			user << "<span class='notice'>You need more welding fuel to complete this task.</span>"
 			return
 
 	else if( istype(W, /obj/item/weapon/pickaxe/plasmacutter) )
@@ -190,16 +197,14 @@
 		user << "<span class='notice'>You begin slicing through the outer plating.</span>"
 		playsound(src, 'sound/items/Welder.ogg', 100, 1)
 
-		sleep(60)
-		if(mineral == "diamond")//Oh look, it's tougher
-			sleep(60)
-		if( !istype(src, /turf/simulated/wall) || !user || !W || !T )	return
+		if(do_after(user, slicing_duration*0.6))  // plasma cutter is faster than welding tool
+			if( !istype(src, /turf/simulated/wall) || !user || !W || !T )
+				return
 
-		if( user.loc == T && user.get_active_hand() == W )
-			user << "<span class='notice'>You remove the outer plating.</span>"
-			dismantle_wall()
-			for(var/mob/O in viewers(user, 5))
-				O.show_message("<span class='warning'>The wall was sliced apart by [user]!</span>", 1, "<span class='warning'>You hear metal being sliced apart.</span>", 2)
+			if( user.loc == T && user.get_active_hand() == W )
+				user << "<span class='notice'>You remove the outer plating.</span>"
+				dismantle_wall()
+				visible_message("<span class='warning'>The wall was sliced apart by [user]!</span>", "<span class='warning'>You hear metal being sliced apart.</span>")
 		return
 
 	//DRILLING
@@ -207,16 +212,14 @@
 
 		user << "<span class='notice'>You begin to drill though the wall.</span>"
 
-		sleep(60)
-		if(mineral == "diamond")
-			sleep(60)
-		if( !istype(src, /turf/simulated/wall) || !user || !W || !T )	return
+		if(do_after(user, slicing_duration*0.6))  // diamond drill is faster than welding tool slicing
+			if( !istype(src, /turf/simulated/wall) || !user || !W || !T )
+				return
 
-		if( user.loc == T && user.get_active_hand() == W )
-			user << "<span class='notice'>Your drill tears though the last of the reinforced plating.</span>"
-			dismantle_wall()
-			for(var/mob/O in viewers(user, 5))
-				O.show_message("<span class='warning'>The wall was drilled through by [user]!</span>", 1, "<span class='warning'>You hear the grinding of metal.</span>", 2)
+			if( user.loc == T && user.get_active_hand() == W )
+				user << "<span class='notice'>Your drill tears though the last of the reinforced plating.</span>"
+				dismantle_wall()
+				visible_message("<span class='warning'>The wall was drilled through by [user]!</span>", "<span class='warning'>You hear the grinding of metal.</span>")
 		return
 
 	else if( istype(W, /obj/item/weapon/melee/energy/blade) )
@@ -226,18 +229,16 @@
 		user << "<span class='notice'>You stab \the [EB] into the wall and begin to slice it apart.</span>"
 		playsound(src, "sparks", 50, 1)
 
-		sleep(70)
-		if(mineral == "diamond")
-			sleep(70)
-		if( !istype(src, /turf/simulated/wall) || !user || !EB || !T )	return
+		if(do_after(user, slicing_duration*0.7))  //energy blade slicing is faster than welding tool slicing
+			if( !istype(src, /turf/simulated/wall) || !user || !EB || !T )
+				return
 
-		if( user.loc == T && user.get_active_hand() == W )
-			EB.spark_system.start()
-			playsound(src, "sparks", 50, 1)
-			playsound(src, 'sound/weapons/blade1.ogg', 50, 1)
-			dismantle_wall(1)
-			for(var/mob/O in viewers(user, 5))
-				O.show_message("<span class='warning'>The wall was sliced apart by [user]!</span>", 1, "<span class='warning'>You hear metal being sliced apart and sparks flying.</span>", 2)
+			if( user.loc == T && user.get_active_hand() == W )
+				EB.spark_system.start()
+				playsound(src, "sparks", 50, 1)
+				playsound(src, 'sound/weapons/blade1.ogg', 50, 1)
+				dismantle_wall(1)
+				visible_message("<span class='warning'>The wall was sliced apart by [user]!</span>", "<span class='warning'>You hear metal being sliced apart and sparks flying.</span>")
 		return
 
 	else if(istype(W,/obj/item/apc_frame))
@@ -282,30 +283,29 @@
 /turf/simulated/wall/proc/thermitemelt(mob/user as mob)
 	if(mineral == "diamond")
 		return
+
+	overlays = list()
 	var/obj/effect/overlay/O = new/obj/effect/overlay( src )
-	O.name = "Thermite"
+	O.name = "thermite"
 	O.desc = "Looks hot."
 	O.icon = 'icons/effects/fire.dmi'
 	O.icon_state = "2"
 	O.anchored = 1
+	O.opacity = 1
 	O.density = 1
 	O.layer = 5
 
-	var/turf/simulated/floor/F = ChangeTurf(/turf/simulated/floor/plating)
-	F.burn_tile()
-	F.icon_state = "wall_thermite"
-	user << "<span class='warning'>The thermite melts through the wall.</span>"
+	playsound(src, 'sound/items/Welder.ogg', 100, 1)
 
-	spawn(100)
-		if(O)	qdel(O)
-//	F.sd_LumReset()		//TODO: ~Carn
-	return
-
-/turf/simulated/wall/meteorhit(obj/M as obj)
-	if (prob(15))
-		dismantle_wall()
-	else if(prob(70))
-		ChangeTurf(/turf/simulated/floor/plating)
+	if(thermite >= 50)
+		var/turf/simulated/floor/F = ChangeTurf(/turf/simulated/floor/plating)
+		F.burn_tile()
+		F.icon_state = "wall_thermite"
+		F.add_hiddenprint(user)
+		spawn(max(100,300-thermite))
+			if(O)	qdel(O)
 	else
-		ReplaceWithLattice()
-	return 0
+		thermite = 0
+		spawn(50)
+			if(O)	qdel(O)
+	return

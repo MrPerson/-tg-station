@@ -1,6 +1,6 @@
 /obj/item/weapon/gun/projectile/shotgun
 	name = "shotgun"
-	desc = "Useful for sweeping alleys."
+	desc = "A traditional shotgun with wood furniture and a four-shell capacity underneath."
 	icon_state = "shotgun"
 	item_state = "shotgun"
 	w_class = 4.0
@@ -39,6 +39,7 @@
 	pumped = 0
 	if(chambered)//We have a shell in the chamber
 		chambered.loc = get_turf(src)//Eject casing
+		chambered.SpinAnimation(5, 1)
 		chambered = null
 	if(!magazine.ammo_count())	return 0
 	var/obj/item/ammo_casing/AC = magazine.get_round() //load next casing.
@@ -46,13 +47,14 @@
 	update_icon()	//I.E. fix the desc
 	return 1
 
-/obj/item/weapon/gun/projectile/shotgun/examine()
+/obj/item/weapon/gun/projectile/shotgun/examine(mob/user)
 	..()
 	if (chambered)
-		usr << "A [chambered.BB ? "live" : "spent"] one is in the chamber."
+		user << "A [chambered.BB ? "live" : "spent"] one is in the chamber."
 
 /obj/item/weapon/gun/projectile/shotgun/combat
 	name = "combat shotgun"
+	desc = "A traditional shotgun with tactical furniture and an eight-shell capacity underneath."
 	icon_state = "cshotgun"
 	origin_tech = "combat=5;materials=2"
 	mag_type = /obj/item/ammo_box/magazine/internal/shotcom

@@ -74,7 +74,7 @@
 		return M.click_action(A,src)
 
 	if(restrained())
-		changeNext_move(10)   //Doing shit in cuffs shall be vey slow
+		changeNext_move(CLICK_CD_HANDCUFFED)   //Doing shit in cuffs shall be vey slow
 		RestrainedClickOn(A)
 		return
 
@@ -101,9 +101,11 @@
 			if(!resolved && A && W)
 				W.afterattack(A,src,1,params) // 1 indicates adjacency
 		else
-			if(ismob(A))
-				changeNext_move(8)
 			UnarmedAttack(A)
+
+		//If we click on a mob make sure we add cooldown
+		if(ismob(A))
+			changeNext_move(CLICK_CD_MELEE)
 		return
 
 	if(!isturf(loc)) // This is going to stop you from telekinesing from inside a closet, but I don't shed many tears for that
@@ -113,24 +115,23 @@
 	if(isturf(A) || isturf(A.loc) || (A.loc && isturf(A.loc.loc)))
 		if(A.Adjacent(src)) // see adjacent.dm
 			if(W)
-				if(W.preattack(A,src,1,params))	//Weapon attack override,return 1 to exit
-					return
 				// Return 1 in attackby() to prevent afterattack() effects (when safely moving items for example)
 				var/resolved = A.attackby(W,src)
 				if(!resolved && A && W)
 					W.afterattack(A,src,1,params) // 1: clicking something Adjacent
 			else
-				if(ismob(A))
-					changeNext_move(8)
 				UnarmedAttack(A, 1)
+
+			if(ismob(A))
+				changeNext_move(CLICK_CD_MELEE)
 			return
 		else // non-adjacent click
 			if(W)
-				if(W.preattack(A,src,0,params))	//Weapon attack override,return 1 to exit
-					return
 				W.afterattack(A,src,0,params) // 0: not Adjacent
 			else
 				RangedAttack(A, params)
+			if(ismob(A))
+				changeNext_move(CLICK_CD_RANGE)
 
 	return
 
@@ -153,8 +154,6 @@
 	in human click code to allow glove touches only at melee range.
 */
 /mob/proc/UnarmedAttack(var/atom/A, var/proximity_flag)
-	if(ismob(A))
-		changeNext_move(8)
 	return
 
 /*
@@ -206,8 +205,7 @@
 	return
 /atom/proc/ShiftClick(var/mob/user)
 	if(user.client && user.client.eye == user)
-		examine()
-		user.face_atom(src)
+		user.examinate(src)
 	return
 
 /*
@@ -266,7 +264,7 @@
 	return
 
 /mob/living/LaserEyes(atom/A)
-	changeNext_move(4)
+	changeNext_move(CLICK_CD_RANGE)
 	var/turf/T = get_turf(src)
 	var/turf/U = get_turf(A)
 
@@ -290,7 +288,7 @@
 		nutrition = max(nutrition - rand(1,5),0)
 		handle_regular_hud_updates()
 	else
-		src << "\red You're out of energy!  You need food!"
+		src << "<span class='danger'>You're out of energy!  You need food!</span>"
 
 // Simple helper to face what you clicked on, in case it should be needed in more than one place
 /mob/proc/face_atom(var/atom/A)

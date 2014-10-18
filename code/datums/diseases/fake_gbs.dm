@@ -8,7 +8,7 @@
 	agent = "Gravitokinetic Bipotential SADS-"
 	affected_species = list("Human", "Monkey")
 	desc = "If left untreated death will occur."
-	severity = "Major"
+	severity = "BIOHAZARD THREAT!"
 
 /datum/disease/fake_gbs/stage_act()
 	..()
@@ -22,7 +22,7 @@
 			else if(prob(5))
 				affected_mob.emote("gasp")
 			if(prob(10))
-				affected_mob << "\red You're starting to feel very weak..."
+				affected_mob << "<span class='danger'>You're starting to feel very weak...</span>"
 		if(4)
 			if(prob(10))
 				affected_mob.emote("cough")

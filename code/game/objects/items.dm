@@ -17,6 +17,7 @@
 
 	//If this is set, The item will make an action button on the player's HUD when picked up.
 	var/action_button_name //It is also the text which gets displayed on the action button. If not set it defaults to 'Use [name]'. If it's not set, there'll be no button.
+	var/action_button_is_hands_free = 0 //If 1, bypass the restrained, lying, and stunned checks action buttons normally test for
 
 	//Since any item can now be a piece of clothing, this has to be put here so all items share it.
 	var/flags_inv //This flag is used to determine when items in someone's inventory cover others. IE helmets making it so you can't see glasses, etc.
@@ -31,6 +32,10 @@
 	var/list/allowed = null //suit storage stuff.
 	var/obj/item/device/uplink/hidden/hidden_uplink = null // All items can have an uplink hidden inside, just remember to add the triggers.
 	var/reflect_chance = 0 //This var dictates what % of a time an object will reflect an energy based weapon's shot
+	var/strip_delay = 40
+	var/put_on_delay = 20
+
+	var/list/species_exception = list()	// even if a species cannot put items in a certain slot, if the species id is in the item's exception list, it will be able to wear that item
 
 /obj/item/device
 	icon = 'icons/obj/device.dmi'
@@ -84,9 +89,8 @@
 
 	src.loc = T
 
-/obj/item/examine()
-	set src in view()
-
+/obj/item/examine(mob/user) //This might be spammy. Remove?
+	..()
 	var/size
 	switch(src.w_class)
 		if(1.0)
@@ -104,25 +108,13 @@
 		else
 	//if ((CLUMSY in usr.mutations) && prob(50)) t = "funny-looking"
 
-	//This reformat names to get a/an properly working on item descriptions when they are bloody
-	var/f_name = "\a [src]"
-	if(src.blood_DNA)
-		f_name = "a bloody [name]"
-
-	var/determiner
 	var/pronoun
 	if(src.gender == PLURAL)
-		determiner = "These are"
 		pronoun = "They are"
 	else
-		determiner = "This is"
 		pronoun = "It is"
 
-	usr << "\icon[src][determiner] [f_name]. [pronoun] a [size] item." //e.g. These are some gloves. They are a small item. or This is a toolbox. It is a bulky item.
-
-	if(src.desc)
-		usr << src.desc
-	return
+	user << "[pronoun] a [size] item." //e.g. They are a small item. or It is a bulky item.
 
 /obj/item/attack_hand(mob/user as mob)
 	if (!user) return
@@ -208,9 +200,9 @@
 						success = 1
 						S.handle_item_insertion(I, 1)	//The 1 stops the "You put the [src] into [S]" insertion message from being displayed.
 					if(success && !failure)
-						user << "<span class='notice'>You put everything in [S].</span>"
+						user << "<span class='notice'>You put everything [S.preposition] [S].</span>"
 					else if(success)
-						user << "<span class='notice'>You put some things in [S].</span>"
+						user << "<span class='notice'>You put some things [S.preposition] [S].</span>"
 					else
 						user << "<span class='notice'>You fail to pick anything up with [S].</span>"
 
@@ -308,7 +300,7 @@
 			(H.glasses && H.glasses.flags & GLASSESCOVERSEYES) \
 		))
 		// you can't stab someone in the eyes wearing a mask!
-		user << "\red You're going to need to remove that mask/helmet/glasses first."
+		user << "<span class='danger'>You're going to need to remove that mask/helmet/glasses first.</span>"
 		return
 
 	var/mob/living/carbon/monkey/Mo = M
@@ -316,11 +308,11 @@
 			(Mo.wear_mask && Mo.wear_mask.flags & MASKCOVERSEYES) \
 		))
 		// you can't stab someone in the eyes wearing a mask!
-		user << "\red You're going to need to remove that mask/helmet/glasses first."
+		user << "<span class='danger'>You're going to need to remove that mask/helmet/glasses first.</span>"
 		return
 
 	if(istype(M, /mob/living/carbon/alien) || istype(M, /mob/living/carbon/slime))//Aliens don't have eyes./N     slimes also don't have eyes!
-		user << "\red You cannot locate any eyes on this creature!"
+		user << "<span class='danger'>You cannot locate any eyes on this creature!</span>"
 		return
 
 	add_logs(user, M, "attacked", object="[src.name]", addition="(INTENT: [uppertext(user.a_intent)])")
@@ -335,14 +327,12 @@
 		M.adjustBruteLoss(10)
 		*/
 	if(M != user)
-		for(var/mob/O in (viewers(M) - user - M))
-			O.show_message("\red [M] has been stabbed in the eye with [src] by [user].", 1)
-		M << "\red [user] stabs you in the eye with [src]!"
-		user << "\red You stab [M] in the eye with [src]!"
+		M.visible_message("<span class='danger'>[M] has been stabbed in the eye with [src] by [user]!</span>", \
+							"<span class='userdanger'>[user] stabs you in the eye with [src]!</span>")
 	else
 		user.visible_message( \
-			"\red [user] has stabbed themself with [src]!", \
-			"\red You stab yourself in the eyes with [src]!" \
+			"<span class='danger'>[user] has stabbed themself in the eyes with [src]!</span>", \
+			"<span class='userdanger'>You stab yourself in the eyes with [src]!</span>" \
 		)
 	if(istype(M, /mob/living/carbon/human))
 		var/mob/living/carbon/human/U = M
@@ -358,17 +348,17 @@
 		M.eye_blurry += 15+(0.1*M.eye_blurry)
 		M.disabilities |= NEARSIGHTED
 		if(M.stat != 2)
-			M << "\red Your eyes start to bleed profusely!"
+			M << "<span class='danger'>Your eyes start to bleed profusely!</span>"
 		if(prob(50))
 			if(M.stat != 2)
-				M << "\red You drop what you're holding and clutch at your eyes!"
+				M << "<span class='danger'>You drop what you're holding and clutch at your eyes!</span>"
 				M.drop_item()
 			M.eye_blurry += 10
 			M.Paralyse(1)
 			M.Weaken(2)
 		if (prob(M.eye_stat - 10 + 1))
 			if(M.stat != 2)
-				M << "\red You go blind!"
+				M << "<span class='danger'>You go blind!</span>"
 			M.sdisabilities |= BLIND
 	return
 

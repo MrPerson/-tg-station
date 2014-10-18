@@ -17,12 +17,7 @@ obj/structure/ex_act(severity)
 		if(3.0)
 			return
 
-obj/structure/meteorhit(obj/O as obj)
-	qdel(src)
-
-
-
-
-
-
-
+obj/structure/Destroy()
+	if(opacity)
+		UpdateAffectingLights()
+	..()

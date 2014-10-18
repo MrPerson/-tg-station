@@ -52,6 +52,8 @@ var/list/diseases = typesof(/datum/disease) - /datum/disease
 	var/requires = 0
 	var/list/required_limb = list()
 
+	var/const/non_threat = "Non-Threat"
+
 
 /datum/disease/proc/stage_act()
 	var/cure_present = has_cure()
@@ -176,8 +178,6 @@ var/list/diseases = typesof(/datum/disease) - /datum/disease
 	if(affected_mob)
 		if(resistance && !(type in affected_mob.resistances))
 			affected_mob.resistances += type
-		/*if(istype(src, /datum/disease/alien_embryo))	//Get rid of the infection flag if it's a xeno embryo.
-			affected_mob.status_flags &= ~(XENO_HOST)*/
 		affected_mob.viruses -= src		//remove the datum from the list
 	del(src)	//delete the datum to stop it processing
 	return
@@ -206,7 +206,7 @@ var/list/diseases = typesof(/datum/disease) - /datum/disease
 
 /datum/disease/proc/GetDiseaseID()
 	return src.type
-/*
+
 /datum/disease/Del()
 	active_diseases.Remove(src)
-*/
+	..()

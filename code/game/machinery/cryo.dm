@@ -85,22 +85,25 @@
 	open_machine()
 	return
 
-/obj/machinery/atmospherics/unary/cryo_cell/examine()
+/obj/machinery/atmospherics/unary/cryo_cell/examine(mob/user)
 	..()
 
-	if(in_range(usr, src))
-		usr << "You can just about make out some loose objects floating in the murk:"
-		for(var/obj/O in src)
-			if(O != beaker)
-				usr << O.name
-		for(var/mob/M in src)
-			if(M != occupant)
-				usr << M.name
+	var/list/otherstuff = contents - beaker
+	if(otherstuff.len > 0)
+		user << "You can just about make out some loose objects floating in the murk:"
+		for(var/atom/movable/floater in otherstuff)
+			user << "\icon[floater] [floater.name]"
 	else
-		usr << "<span class='notice'>Too far away to view contents.</span>"
+		user << "Seems empty."
 
 /obj/machinery/atmospherics/unary/cryo_cell/attack_hand(mob/user)
-	ui_interact(user)
+	if(stat & (NOPOWER|BROKEN))
+		if(state_open == 1)
+			close_machine()
+		else
+			open_machine()
+	else
+		ui_interact(user)
 
 
  /**
@@ -189,7 +192,6 @@
 			on = 1
 
 	if(href_list["open"])
-		on = 0
 		open_machine()
 
 	if(href_list["close"])
@@ -235,6 +237,7 @@
 
 /obj/machinery/atmospherics/unary/cryo_cell/open_machine()
 	if(!state_open && !panel_open)
+		on = 0
 		layer = 3
 		if(occupant)
 			occupant.bodytemperature = Clamp(occupant.bodytemperature, 261, 360)

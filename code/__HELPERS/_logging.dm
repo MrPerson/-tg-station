@@ -8,6 +8,11 @@
 /proc/warning(msg)
 	world.log << "## WARNING: [msg]"
 
+//not an error or a warning, but worth to mention on the world log, just in case.
+#define NOTICE(MSG) notice(MSG)
+/proc/notice(msg)
+	world.log << "## NOTICE: [msg]"
+
 //print a testing-mode debug message to world.log
 /proc/testing(msg)
 #ifdef TESTING
@@ -62,10 +67,6 @@
 /proc/log_adminsay(text)
 	if (config.log_adminchat)
 		diary << "\[[time_stamp()]]ADMINSAY: [text]"
-
-/proc/log_adminwarn(text)
-	if (config.log_adminwarn)
-		diary << "\[[time_stamp()]]ADMINWARN: [text]"
 
 /proc/log_pda(text)
 	if (config.log_pda)

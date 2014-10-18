@@ -65,7 +65,7 @@
 	desc = "A card used to provide ID and determine access across the station."
 	icon_state = "id"
 	item_state = "card-id"
-	var/mining_points = 0 //For redeeming at mining equipment lockers
+	var/mining_points = 0 //For redeeming at mining equipment vendors
 	var/list/access = list()
 	var/registered_name = null // The name registered_name on the card
 	slot_flags = SLOT_ID
@@ -79,10 +79,10 @@
 	src.add_fingerprint(user)
 	return
 
-/obj/item/weapon/card/id/examine()
+/obj/item/weapon/card/id/examine(mob/user)
 	..()
 	if(mining_points)
-		usr << "There's [mining_points] mining equipment redemption points loaded onto this card."
+		user << "There's [mining_points] mining equipment redemption point\s loaded onto this card."
 
 /obj/item/weapon/card/id/GetAccess()
 	return access
@@ -142,7 +142,7 @@ update_label("John Doe", "Clowny")
 		src.access |= I.access
 		if(istype(user, /mob/living) && user.mind)
 			if(user.mind.special_role)
-				usr << "\blue The card's microscanners activate as you pass it over the ID, copying its access."
+				usr << "<span class='notice'>The card's microscanners activate as you pass it over the ID, copying its access.</span>"
 
 
 /obj/item/weapon/card/id/syndicate/attack_self(mob/user as mob)
@@ -161,7 +161,7 @@ update_label("John Doe", "Clowny")
 			return
 		src.assignment = u
 		update_label()
-		user << "\blue You successfully forge the ID card."
+		user << "<span class='notice'>You successfully forge the ID card.</span>"
 	else
 		..()
 

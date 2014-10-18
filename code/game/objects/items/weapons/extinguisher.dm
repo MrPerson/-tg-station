@@ -19,7 +19,7 @@
 	var/sprite_name = "fire_extinguisher"
 
 /obj/item/weapon/extinguisher/mini
-	name = "fire extinguisher"
+	name = "pocket fire extinguisher"
 	desc = "A light and compact fibreglass-framed model fire extinguisher."
 	icon_state = "miniFE0"
 	item_state = "miniFE"
@@ -36,12 +36,6 @@
 	create_reagents(max_water)
 	reagents.add_reagent("water", max_water)
 
-/obj/item/weapon/extinguisher/examine()
-	set src in usr
-	..()
-	usr << "It contains [src.reagents.total_volume] units of water!"
-	return
-
 /obj/item/weapon/extinguisher/attack_self(mob/user as mob)
 	safety = !safety
 	src.icon_state = "[sprite_name][!safety]"
@@ -55,13 +49,13 @@
 	if( istype(target, /obj/structure/reagent_dispensers/watertank) && get_dist(src,target) <= 1)
 		var/obj/o = target
 		o.reagents.trans_to(src, max_water)
-		user << "\blue \The [src] is now refilled"
+		user << "<span class='notice'>\The [src] is now refilled</span>"
 		playsound(src.loc, 'sound/effects/refill.ogg', 50, 1, -6)
 		return
 
 	if (!safety)
 		if (src.reagents.total_volume < 1)
-			usr << "\red \The [src] is empty."
+			usr << "<span class='danger'>\The [src] is empty.</span>"
 			return
 
 		if (world.time < src.last_use + 20)
