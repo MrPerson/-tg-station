@@ -32,8 +32,10 @@
 #define LIGHTING_CIRCULAR 1									//comment this out to use old square lighting effects.
 #define LIGHTING_LAYER 15									//Drawing layer for lighting
 #define LIGHTING_CAP 10										//The lumcount level at which alpha is 0. Requires some intense light to hit this.
+#define LIGHTING_CAP_FRAC (255/LIGHTING_CAP)				//A precal'd variable we'll use in turf/redraw_lighting()
 #define LIGHTING_ICON 'icons/effects/alphacolors.dmi'
 #define LIGHTING_ICON_STATE "white"
+#define LIGHTING_ICON_STATE_BLANK "transparent"
 #define LIGHTING_TIME 4
 #define LIGHTING_DARKEST_VISIBLE_ALPHA 230	//Anything darker than this is so dark, we'll just consider the whole tile unlit
 
@@ -85,7 +87,7 @@
 	// only do this if the light is turned on and is on the map
 	if(owner.loc && owner.luminosity > 0)
 		effect = list()
-		for(var/turf/T in view(owner.get_light_range(),owner))
+		for(var/turf/T in view(owner.get_light_range(),get_turf(owner)))
 			var/delta_lumen = lum(T)
 			if(delta_lumen > 0)
 				effect[T] = delta_lumen
@@ -241,13 +243,13 @@
 	lighting_object = new (src)
 	var/area/A = loc
 	if(!A.lighting_use_dynamic)
-		lighting_object.icon_state = "transparent"
+		lighting_object.icon_state = LIGHTING_ICON_STATE_BLANK
 
 /turf/proc/redraw_lighting()
 	var/newalpha
 	var/newcol
 
-	if(lighting_object.icon_state != "transparent") //Save ourselves some time
+	if(lighting_object.icon_state != LIGHTING_ICON_STATE_BLANK) //Save ourselves some time
 		if(lighting_lumcount <= 0)
 			newalpha = 255
 			newcol = "#000" //black
@@ -255,8 +257,7 @@
 			lighting_object.luminosity = 1
 			lighting_object.infra_luminosity = 1
 			if(lighting_lumcount < LIGHTING_CAP)
-				var/lightfrac = lighting_lumcount/LIGHTING_CAP
-				var/num = round(Clamp(lightfrac * 255, 0, 255), 1)
+				var/num = round(Clamp(lighting_lumcount * LIGHTING_CAP_FRAC, 0, 255), 1)
 				newalpha = 255-num
 				newcol = rgb(num,num,num)
 			else //if(lighting_lumcount >= LIGHTING_CAP)
@@ -268,11 +269,6 @@
 			if(newalpha >= LIGHTING_DARKEST_VISIBLE_ALPHA) //Doesn't actually make it darker or anything, just tells byond you can't see the tile
 				animate(luminosity = 0, infra_luminosity = 0, time = 0)
 
-	lighting_changed = 0
-
-/turf/space/redraw_lighting()
-	lighting_object.icon_state = "transparent"
-	lighting_object.luminosity = 1
 	lighting_changed = 0
 
 /area
@@ -291,6 +287,7 @@
 #undef LIGHTING_ICON_STATE
 #undef LIGHTING_TIME
 #undef LIGHTING_CAP
+#undef LIGHTING_CAP_FRAC
 #undef LIGHTING_DARKEST_VISIBLE_ALPHA
 
 #define LIGHTING_MAX_LUMINOSITY_STATIC	8	//Maximum luminosity to reduce lag.
