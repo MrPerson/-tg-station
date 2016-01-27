@@ -245,10 +245,12 @@
 		json_data["data"] = data
 
 	// Generate the JSON.
-	var/json = JSON.stringify(json_data)
+	var/json = json_encode(json_data)
 	// Strip #255/improper.
-	json = regex_replaceall(json, "\improper", "")
-	json = regex_replaceall(json, "\proper", "")
+	var/regex/improper = regex("\improper", "g")
+	json = improper.Replace(json, "")
+	var/regex/proper = regex("\proper", "g")
+	json = proper.Replace(json, "")
 	return json
 
  /**

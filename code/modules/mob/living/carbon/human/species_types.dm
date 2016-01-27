@@ -81,16 +81,6 @@ datum/species/human/spec_death(gibbed, mob/living/carbon/human/H)
 		return 0
 	return 1
 
-/datum/species/lizard/handle_speech(message)
-
-	if(copytext(message, 1, 2) != "*")
-		message = regEx_replaceall(message, "(?<!s)s(?!s)", "sss") //(?<!s) Not s before. (?!s) not s after. That way it only triples a single s instead of double ss.
-		message = regEx_replaceall(message, "(?<!s)ss(?!s)", "ssss")
-		message = regEx_replaceall(message, "(?<!S)S(?!S)", "SSS")
-		message = regEx_replaceall(message, "(?<!S)SS(?!S)", "SSSS")
-
-	return message
-
 //I wag in death
 /datum/species/lizard/spec_death(gibbed, mob/living/carbon/human/H)
 	if(H)
