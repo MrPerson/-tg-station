@@ -195,6 +195,7 @@
 	// Poplate HTML with JSON if we're supposed to inline.
 	if(inline)
 		html = replacetextEx(SStgui.basehtml, "{}", get_json(initial_data))
+		world << get_json(initial_data)
 	else
 		html = SStgui.basehtml
 	html = replacetextEx(html, "\[ref]", "\ref[src]")
@@ -246,11 +247,10 @@
 
 	// Generate the JSON.
 	var/json = json_encode(json_data)
+	//var/json = JSON.stringify(json_data)
 	// Strip #255/improper.
-	var/regex/improper = regex("\improper", "g")
-	json = improper.Replace(json, "")
-	var/regex/proper = regex("\proper", "g")
-	json = proper.Replace(json, "")
+	json = replacetext(json, "\improper", "")
+	json = replacetext(json, "\proper", "")
 	return json
 
  /**
