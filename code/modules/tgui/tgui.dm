@@ -195,7 +195,6 @@
 	// Poplate HTML with JSON if we're supposed to inline.
 	if(inline)
 		html = replacetextEx(SStgui.basehtml, "{}", get_json(initial_data))
-		world << get_json(initial_data)
 	else
 		html = SStgui.basehtml
 	html = replacetextEx(html, "\[ref]", "\ref[src]")

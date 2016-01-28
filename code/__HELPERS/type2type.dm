@@ -2,7 +2,6 @@
  * Holds procs designed to change one type of value, into another.
  * Contains:
  *			hex2num & num2hex
- *			text2list & list2text
  *			file2list
  *			angle2dir
  *			angle2text
@@ -61,54 +60,9 @@
 		i++
 	return .
 
-
-// Concatenates a list of strings into a single string.  A seperator may optionally be provided.
-/proc/list2text(list/ls, sep = "")
-	return jointext(ls, sep)
-
-//slower then list2text, but correctly processes associative lists.
-/proc/tg_list2text(list/list, glue=",")
-	if(!istype(list) || !list.len)
-		return
-	var/output
-	for(var/i=1 to list.len)
-		output += (i!=1? glue : null)+(!isnull(list["[list[i]]"])?"[list["[list[i]]"]]":"[list[i]]")
-	return output
-
-
-//Converts a string into a list by splitting the string at each delimiter found. (discarding the seperator)
-/proc/text2list(text, delimiter="\n")
-	var/delim_len = length(delimiter)
-	. = list()
-	var/last_found = 1
-	var/found = 1
-	if(delim_len < 1)
-		var/text_len = length(text)
-		while(found++ <= text_len)
-			. += copytext(text,found-1, found)
-	else
-		do
-			found = findtext(text, delimiter, last_found, 0)
-			. += copytext(text, last_found, found)
-			last_found = found + delim_len
-		while(found)
-
-//Case Sensitive!
-/proc/text2listEx(text, delimiter="\n")
-	var/delim_len = length(delimiter)
-	if(delim_len < 1) return list(text)
-	. = list()
-	var/last_found = 1
-	var/found
-	do
-		found = findtextEx(text, delimiter, last_found, 0)
-		. += copytext(text, last_found, found)
-		last_found = found + delim_len
-	while(found)
-
 //Splits the text of a file at seperator and returns them in a list.
 /proc/file2list(filename, seperator="\n")
-	return text2list(return_file_text(filename),seperator)
+	return splittext(return_file_text(filename),seperator)
 
 
 //Turns a direction into text
@@ -532,18 +486,18 @@ for(var/t in test_times)
 		//Find var names
 
 		// "A dog said hi [name]!"
-		// text2list() --> list("A dog said hi ","name]!"
-		// list2text() --> "A dog said hi name]!"
-		// text2list() --> list("A","dog","said","hi","name]!")
+		// splittext() --> list("A dog said hi ","name]!"
+		// jointext() --> "A dog said hi name]!"
+		// splittext() --> list("A","dog","said","hi","name]!")
 
 		t_string = replacetext(t_string,"\[","\[ ")//Necessary to resolve "word[var_name]" scenarios
-		var/list/list_value = text2list(t_string,"\[")
-		var/intermediate_stage = list2text(list_value)
+		var/list/list_value = splittext(t_string,"\[")
+		var/intermediate_stage = jointext(list_value, null)
 
-		list_value = text2list(intermediate_stage," ")
+		list_value = splittext(intermediate_stage," ")
 		for(var/value in list_value)
 			if(findtext(value,"]"))
-				value = text2list(value,"]") //"name]!" --> list("name","!")
+				value = splittext(value,"]") //"name]!" --> list("name","!")
 				for(var/A in value)
 					if(var_source.vars.Find(A))
 						. += A
