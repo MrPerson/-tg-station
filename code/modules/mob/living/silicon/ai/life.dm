@@ -55,8 +55,7 @@
 
 		if (!blindness)
 			//stage = 4.5
-			if (src.blind.layer != 0)
-				src.blind.layer = 0
+			src.blind.plane = -80
 			src.sight |= SEE_TURFS
 			src.sight |= SEE_MOBS
 			src.sight |= SEE_OBJS
@@ -73,19 +72,16 @@
 			if (aiRestorePowerRoutine==2)
 				src << "Alert cancelled. Power has been restored without our assistance."
 				aiRestorePowerRoutine = 0
-				src.blind.layer = 0
 				return
 			else if (aiRestorePowerRoutine==3)
 				src << "Alert cancelled. Power has been restored."
 				aiRestorePowerRoutine = 0
-				src.blind.layer = 0
 				return
 		else
 
 			//stage = 6
 			src.blind.screen_loc = "1,1 to 15,15"
-			if (src.blind.layer!=18)
-				src.blind.layer = 18
+			src.blind.plane = 0
 			src.sight = src.sight&~SEE_TURFS
 			src.sight = src.sight&~SEE_MOBS
 			src.sight = src.sight&~SEE_OBJS
@@ -110,7 +106,7 @@
 							if (!istype(T, /turf/space))
 								src << "Alert cancelled. Power has been restored without our assistance."
 								aiRestorePowerRoutine = 0
-								src.blind.layer = 0
+								src.blind.plane = -80
 								return
 						src << "Fault confirmed: missing external power. Shutting down main control system to save power."
 						sleep(20)
@@ -148,7 +144,7 @@
 								if (!istype(T, /turf/space))
 									src << "Alert cancelled. Power has been restored without our assistance."
 									aiRestorePowerRoutine = 0
-									src.blind.layer = 0 //This, too, is a fix to issue 603
+									src.blind.plane = -80
 									return
 							switch(PRP)
 								if (1) src << "APC located. Optimizing route to APC to avoid needless power waste."
